@@ -1,15 +1,15 @@
-// ===================== controllers/auth/authController.js =====================
+// ===================== controllers/auth.js =====================
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 
-const User = require("../../models/User");
-const FarmerProfile = require("../../models/FarmerProfile");
-const FPOProfile = require("../../models/FPOProfile");
-const BuyerProfile = require("../../models/BuyerProfile");
-const LogisticsProfile = require("../../models/LogisticsProfile");
+const User = require("../models/User");
+const FarmerProfile = require("../models/farmerProfile");
+const FPOProfile = require("../models/fpoProfile");
+const BuyerProfile = require("../models/buyerProfile");
+const LogisticsProfile = require("../models/logisticsProfile");
 
-const sendEmail = require("../../services/notificationService").sendEmail;
+const sendEmail = require("../services/notificationService").sendEmail;
 
 // Map role -> profile model, so registration stays generic instead of 4 near-duplicate functions
 const PROFILE_MODEL_MAP = {
@@ -98,7 +98,7 @@ exports.verifyOtp = async (req, res) => {
   try {
     const { email, otp } = req.body;
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).select("+otp +otpExpiry");
     if (!user) {
       return res.status(404).json({ success: false, message: "User not found" });
     }
@@ -139,7 +139,7 @@ exports.login = async (req, res) => {
       return res.status(400).json({ success: false, message: "Email and password required" });
     }
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).select("+password");
     if (!user) {
       return res.status(401).json({ success: false, message: "Invalid credentials" });
     }
